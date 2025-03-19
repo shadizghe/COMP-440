@@ -11,7 +11,7 @@ def connect_db():
     return mysql.connector.connect(
         host="localhost",
         user="root",
-        password="YOURPASSWORD",  # Change this to your MySQL password
+        password="$YOUR_PASSWORD",  # Change this to your MySQL password
         database="projectdb"
     )
 
@@ -29,12 +29,18 @@ def signup():
 # Route to handle user registration
 @app.route("/register", methods=["POST"])
 def register():
-    first_name = request.form["first_name"]
-    last_name = request.form["last_name"]
-    email = request.form["email"]
-    phone = request.form["phone"]
     username = request.form["username"]
     password = request.form["password"]
+    confirm_password = request.form['confirm_password']
+
+    if password != confirm_password:
+        flash("Passwords do not match!", "error")
+        return redirect(url_for('register'))  # Redirect back to the register page
+
+    email = request.form["email"]
+    first_name = request.form["first_name"]
+    last_name = request.form["last_name"]
+    phone = request.form["phone"]
     
     hashed_password = hash_password(password)
     
