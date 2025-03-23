@@ -1,92 +1,135 @@
+/* Reset & Global */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-}
-
-body{
+    font-family: 'Arial', sans-serif;
+  }
+  
+  body {
     display: flex;
     justify-content: center;
     align-items: center;
     min-height: 100vh;
-    background: url('image.jpg') no-repeat;
-    background-size: cover;
-    background-position: center;
-}
-
-.wrapper{
+    background: url('image.jpg') no-repeat center center/cover;
+  }
+  
+  /* Wrapper Styles */
+  .wrapper {
     width: 420px;
-    background: transparent;
-    border: 2px solid rgba(255, 255, 255, .2);
-    backdrop-filter: blur(20px);
-    color: black;
+    background: rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(0, 0, 0, 0.1);
     border-radius: 10px;
-    padding: 30px 40px;
-}
-
-.wrapper h1{
+    padding: 40px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    color: #333;
+  }
+  
+  .wrapper h1 {
     font-size: 36px;
     text-align: center;
-}
-
-.wrapper .input-box{
+    margin-bottom: 20px;
+  }
+  
+  /* Input Boxes */
+  .input-box {
     position: relative;
+    margin-bottom: 20px;
+  }
+  
+  .input-box input {
     width: 100%;
-    height: 50px;
-    margin: 30px 0;
-}
-
-.input-box input{
-    width: 100%;
-    height: 100%;
-    background: transparent;
-    border: none;
+    padding: 12px 40px 12px 15px;
+    background: #f7f7f7;
+    border: 1px solid #ccc;
+    border-radius: 30px;
     outline: none;
-    border: 2px solid rgba(31, 28, 28, 0.2);
-    border-radius: 40px;
     font-size: 16px;
-    color: black;
-    padding: 20px 45px 20px 20px;
-}
-
-.input-box input::placeholder{
-    color: black;
-}
-
-.input-box i{
+    color: #333;
+    transition: all 0.3s ease;
+  }
+  
+  .input-box input::placeholder {
+    color: #999;
+  }
+  
+  .input-box input:focus {
+    border-color: #007BFF;
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+  }
+  
+  .input-box i {
     position: absolute;
-    right: 20px;
+    right: 15px;
     top: 50%;
     transform: translateY(-50%);
     font-size: 20px;
-}
-
-.wrapper .btn{
+    color: #666;
+  }
+  
+  /* Submit Button */
+  .btn {
     width: 100%;
-    height: 45px;
-    background: black;
+    padding: 12px;
+    background: #000;
     border: none;
     outline: none;
-    border-radius: 40px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, .1);
+    border-radius: 30px;
+    font-size: 18px;
+    font-weight: bold;
+    color: #fff;
     cursor: pointer;
-    font-size: 16px;
-    color: white;
-    font-weight: 600;
-}
-
-.wrapper .register-link{
+    transition: background 0.3s ease;
+    margin-top: 10px;
+  }
+  
+  .btn:hover {
+    background: #333;
+  }
+  
+  /* Register Link */
+  .register-link {
     font-size: 14.5px;
     text-align: center;
     margin: 20px 0 15px;
-}
-
-.register-link p a{
-    color: blue;
+  }
+  
+  .register-link p a {
+    color: #007BFF;
     text-decoration: none;
     font-weight: 600;
-}
-
-.register-link p a:hover{
+  }
+  
+  .register-link p a:hover {
     text-decoration: underline;
-}
+  }
+  
+  /* Flash Message Styles */
+  .flash-message {
+    padding: 10px;
+    margin-bottom: 20px;
+    border-radius: 5px;
+    text-align: center;
+  }
+  
+  .flash-message.success {
+    background-color: #d4edda;
+    color: #155724;
+  }
+  
+  .flash-message.error,
+  .flash-message.danger {
+    background-color: #f8d7da;
+    color: #721c24;
+  }
+  
+  .flash-message.warning {
+    background-color: #fff3cd;
+    color: #856404;
+  }
+  
+  .flash-message.info {
+    background-color: #d1ecf1;
+    color: #0c5460;
+  }
+  
