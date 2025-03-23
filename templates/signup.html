@@ -1,59 +1,93 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Signup</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='signup.css') }}">
-    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Signup</title>
+  <!-- Link your updated signup.css in static folder -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='signup.css') }}" />
+  <link
+    href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css"
+    rel="stylesheet"
+  />
 </head>
 <body>
-    <div class="wrapper">
-        <!-- Flash Messages for Feedback -->
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="flash-message {{ category }}">{{ message }}</div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
-        
-        <form action="/register" method="POST">
-            <h1>Signup</h1>
-            <div class="input-box">
-                <input type="text" name="username" placeholder="Username" required>
-                <i class='bx bxs-user'></i>
-            </div>
-            <div class="input-box">
-                <input type="password" name="password" placeholder="Password" required>
-                <i class='bx bxs-lock-alt'></i>
-            <div class="input-box">
-                <input type="password" placeholder="Confirm Password" name="confirm_password" required>
-                <i class='bx bxs-lock-alt'></i>
-            </div>
-            <div class="input-box">
-                <input type="email" name="email" placeholder="Email" required>
-                <i class='bx bxs-envelope'></i>
-            </div>
-            <div class="input-box">
-                <input type="text" name="first_name" placeholder="First Name" required>
-                <i class='bx bxs-user'></i>
-            </div>
-            <div class="input-box">
-                <input type="text" name="last_name" placeholder="Last Name" required>
-                <i class='bx bxs-user'></i>
-            </div>
-            <div class="input-box">
-                <input type="text" name="phone" placeholder="Phone Number" required>
-                <i class='bx bxs-phone'></i>
-            </div>
-            </div>
-            <button type="submit" class="btn">Signup</button>
-            <div class="register-link">
-                <p>Have an account? <a href="{{ url_for('login') }}">Login Now</a> </p>
-            </div>
-        </form>
-    </div>
+  <div class="wrapper">
+    <!-- Flash Messages for Feedback -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="flash-message {{ category }}">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <form action="/register" method="POST">
+      <h1>Signup</h1>
+      <!-- Username -->
+      <div class="input-box">
+        <input type="text" name="username" placeholder="Username" required />
+        <i class="bx bxs-user"></i>
+      </div>
+
+      <!-- Password -->
+      <div class="input-box">
+        <input type="password" name="password" placeholder="Password" required />
+        <i class="bx bxs-lock-alt"></i>
+      </div>
+
+      <!-- Confirm Password -->
+      <div class="input-box">
+        <input
+          type="password"
+          name="confirm_password"
+          placeholder="Confirm Password"
+          required
+        />
+        <i class="bx bxs-lock-alt"></i>
+      </div>
+
+      <!-- Email -->
+      <div class="input-box">
+        <input type="email" name="email" placeholder="Email" required />
+        <i class="bx bxs-envelope"></i>
+      </div>
+
+      <!-- First Name -->
+      <div class="input-box">
+        <input
+          type="text"
+          name="first_name"
+          placeholder="First Name"
+          required
+        />
+        <i class="bx bxs-user"></i>
+      </div>
+
+      <!-- Last Name -->
+      <div class="input-box">
+        <input type="text" name="last_name" placeholder="Last Name" required />
+        <i class="bx bxs-user"></i>
+      </div>
+
+      <!-- Phone -->
+      <div class="input-box">
+        <input type="text" name="phone" placeholder="Phone Number" required />
+        <i class="bx bxs-phone"></i>
+      </div>
+
+      <!-- Submit Button -->
+      <button type="submit" class="btn">Signup</button>
+
+      <!-- Already Have an Account -->
+      <div class="register-link">
+        <p>
+          Have an account?
+          <a href="{{ url_for('login') }}">Login Now</a>
+        </p>
+      </div>
+    </form>
+  </div>
 </body>
 </html>
