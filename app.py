@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for, flash, ses
 import mysql.connector
 import hashlib
 import base64
+from datetime import datetime, timedelta
 
 app = Flask(__name__)
 app.secret_key = "your_secret_key"  # Change this to a secure random key
@@ -11,7 +12,7 @@ def connect_db():
     return mysql.connector.connect(
         host="localhost",
         user="root",
-        password="$YOUR_PASSWORD",  # Change this to your MySQL password
+        password="$Beanman069",  # Change this to your MySQL password
         database="projectdb"
     )
 
@@ -95,6 +96,30 @@ def dashboard():
     else:
         flash("Please log in first.", "warning")
         return redirect(url_for("login"))
+
+### code for rental unit, need to make a page in html before implementing this
+###   
+###   # Get the current user ID from the session or app context
+###   user_id = 1  # example user
+###   
+###   # Query to count how many listings they posted today
+###   cursor.execute("""
+###       SELECT COUNT(*) FROM rental_unit
+###       WHERE user_id = %s AND DATE(posted_at) = CURDATE()
+###   """, (user_id,))
+###   (post_count,) = cursor.fetchone()
+###   
+###   if post_count >= 2:
+###       flash("You can only post 2 rental units per day.", "danger")
+###       return redirect(url_for("post_rental"))
+###   
+###   # Otherwise, insert new rental
+###   cursor.execute("""
+###       INSERT INTO rental_unit (user_id, title, description, features, price)
+###       VALUES (%s, %s, %s, %s, %s)
+###   """, (user_id, title, description, features, price))
+###   conn.commit()
+###   
 
 # Route to handle user logout
 @app.route("/logout")

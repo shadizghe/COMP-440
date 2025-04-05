@@ -2,7 +2,6 @@
 
 # How to run?
     - .\.venv\Scripts\Activate.ps1
-    - pip install -r requirements.txt
         - update pip if needed
     - pip install flask mysql-connector
     - change password in app.py line 14 to your mysql workbench password
