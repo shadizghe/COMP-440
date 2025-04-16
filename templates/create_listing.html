@@ -1,0 +1,22 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Listing</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='create_listing.css') }}">
+</head>
+<body>
+    <div class="wrapper">
+        <h2>You have {{ listings_left }} listings left today</h2>
+        <form action="/submit_listing" method="POST">
+            <div class="input-box"><input type="text" name="title" placeholder="Title" required></div>
+            <div class="input-box"><textarea name="description" placeholder="Description" required></textarea></div>
+            <div class="input-box"><input type="text" name="features" placeholder="Features (comma-separated)" required></div>
+            <div class="input-box"><input type="number" name="price" placeholder="Price ($)" required></div>
+            <button type="submit" class="btn">Submit Listing</button>
+        </form>
+    </div>
+</body>
+</html>

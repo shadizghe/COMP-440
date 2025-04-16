@@ -36,7 +36,7 @@ def register():
 
     if password != confirm_password:
         flash("Passwords do not match!", "error")
-        return redirect(url_for('register'))  # Redirect back to the register page
+        return redirect(url_for('register'))
 
     email = request.form["email"]
     first_name = request.form["first_name"]
@@ -83,43 +83,49 @@ def login_user():
     if result and result[0] == hash_password(password):
         session["username"] = username
         flash("Login successful! Welcome back.", "success")
-        return redirect(url_for("dashboard"))
+        return redirect(url_for("landing"))
     else:
         flash("Invalid username or password.", "danger")
         return redirect(url_for("login"))
 
-# Route for user dashboard (after login)
-@app.route("/dashboard")
-def dashboard():
+# Route for user landing page (after login)
+@app.route("/landing")
+def landing():
     if "username" in session:
-        return f"Welcome, {session['username']}! <br><a href='/logout'>Logout</a>"
+        return render_template("landing.html", username=session["username"])
     else:
         flash("Please log in first.", "warning")
         return redirect(url_for("login"))
 
-### code for rental unit, need to make a page in html before implementing this
-###   
-###   # Get the current user ID from the session or app context
-###   user_id = 1  # example user
-###   
-###   # Query to count how many listings they posted today
-###   cursor.execute("""
-###       SELECT COUNT(*) FROM rental_unit
-###       WHERE user_id = %s AND DATE(posted_at) = CURDATE()
-###   """, (user_id,))
-###   (post_count,) = cursor.fetchone()
-###   
-###   if post_count >= 2:
-###       flash("You can only post 2 rental units per day.", "danger")
-###       return redirect(url_for("post_rental"))
-###   
-###   # Otherwise, insert new rental
-###   cursor.execute("""
-###       INSERT INTO rental_unit (user_id, title, description, features, price)
-###       VALUES (%s, %s, %s, %s, %s)
-###   """, (user_id, title, description, features, price))
-###   conn.commit()
-###   
+# Route for creating a listing
+@app.route("/create_listing")
+def create_listing():
+    if "username" not in session:
+        flash("Please log in first.", "warning")
+        return redirect(url_for("login"))
+    listings_left = 2
+    return render_template("create_listing.html", listings_left=listings_left)
+
+# Route for searching for listings
+@app.route("/search_listing")
+def search_listing():
+    if "username" not in session:
+        flash("Please log in first.", "warning")
+        return redirect(url_for("login"))
+
+    feature = request.args.get("feature")
+    listings = []
+
+    if feature:
+        conn = connect_db()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM listings WHERE features LIKE %s", (f"%{feature}%",))
+        listings = cursor.fetchall()
+        cursor.close()
+        conn.close()
+
+    return render_template("search_listing.html", listings=listings)
+
 
 # Route to handle user logout
 @app.route("/logout")
@@ -131,3 +137,6 @@ def logout():
 # Run Flask app
 if __name__ == "__main__":
     app.run(debug=True)
+
+
+

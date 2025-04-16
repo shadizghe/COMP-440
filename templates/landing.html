@@ -1,0 +1,19 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Landing Page</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='landing.css') }}">
+</head>
+<body>
+    <div class="wrapper">
+        <h1>Welcome, {{ username }}!</h1>
+        <div class="btn-container">
+            <a href="/create_listing" class="btn">Create Rental Listing</a>
+            <a href="/search_listing" class="btn">Search for a Listing</a>
+        </div>
+    </div>
+</body>
+</html>

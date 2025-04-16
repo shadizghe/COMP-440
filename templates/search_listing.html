@@ -1,0 +1,27 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Listings</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='search_listing.css') }}">
+</head>
+<body>
+    <div class="wrapper">
+        <form action="/search_listing" method="GET">
+            <div class="input-box">
+                <input type="text" name="feature" placeholder="Enter a feature to search" required>
+            </div>
+            <button type="submit" class="btn">Search</button>
+        </form>
+        {% if listings %}
+            <ul class="results">
+                {% for listing in listings %}
+                    <li><strong>{{ listing.title }}</strong> - {{ listing.description }} - ${{ listing.price }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    </div>
+</body>
+</html>
