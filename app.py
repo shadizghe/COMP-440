@@ -12,7 +12,7 @@ def connect_db():
     return mysql.connector.connect(
         host="localhost",
         user="root",
-        password="$password",  # Change this to your MySQL password
+        password="$root",  # Change this to your MySQL password
         database="projectdb"
     )
 
@@ -36,7 +36,7 @@ def register():
 
     if password != confirm_password:
         flash("Passwords do not match!", "error")
-        return redirect(url_for('register'))
+        return redirect(url_for('signup'))
 
     email = request.form["email"]
     first_name = request.form["first_name"]
@@ -49,7 +49,8 @@ def register():
     cursor = conn.cursor()
     
     try:
-        cursor.execute("""
+        cursor.execute(
+            """
             INSERT INTO user (username, password, firstName, lastName, email, phone)
             VALUES (%s, %s, %s, %s, %s, %s)
         """, (username, hashed_password, first_name, last_name, email, phone))
@@ -79,6 +80,8 @@ def login_user():
     
     cursor.execute("SELECT password FROM user WHERE username = %s", (username,))
     result = cursor.fetchone()
+    cursor.close()
+    conn.close()
     
     if result and result[0] == hash_password(password):
         session["username"] = username
@@ -106,6 +109,37 @@ def create_listing():
     listings_left = 2
     return render_template("create_listing.html", listings_left=listings_left)
 
+# Route to handle listing submission
+@app.route("/submit_listing", methods=["POST"])
+def submit_listing():
+    if "username" not in session:
+        flash("Please log in first.", "warning")
+        return redirect(url_for("login"))
+    title = request.form["title"]
+    details = request.form.get("description")
+    features = request.form["features"]
+    price = request.form["price"]
+    username = session["username"]
+
+    conn = connect_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT id FROM user WHERE username = %s", (username,))
+    user = cursor.fetchone()
+    if user:
+        user_id = user[0]
+        cursor.execute(
+            """
+            INSERT INTO rental_unit (user_id, title, details, features, price)
+            VALUES (%s, %s, %s, %s, %s)
+        """, (user_id, title, details, features, price))
+        conn.commit()
+        flash("Listing created successfully!", "success")
+    else:
+        flash("User not found.", "danger")
+    cursor.close()
+    conn.close()
+    return redirect(url_for("landing"))
+
 # Route for searching for listings
 @app.route("/search_listing")
 def search_listing():
@@ -119,13 +153,17 @@ def search_listing():
     if feature:
         conn = connect_db()
         cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT * FROM listings WHERE features LIKE %s", (f"%{feature}%",))
+        cursor.execute(
+            """
+            SELECT id, title, details AS description, features, price, posted_at
+            FROM rental_unit
+            WHERE features LIKE %s
+            """, (f"%{feature}%",))
         listings = cursor.fetchall()
         cursor.close()
         conn.close()
 
     return render_template("search_listing.html", listings=listings)
-
 
 # Route to handle user logout
 @app.route("/logout")
@@ -134,9 +172,5 @@ def logout():
     flash("You have been logged out.", "info")
     return redirect(url_for("login"))
 
-# Run Flask app
 if __name__ == "__main__":
-    app.run(debug=True)
-
-
-
+    app.run(host="0.0.0.0", port=5000, debug=True)
