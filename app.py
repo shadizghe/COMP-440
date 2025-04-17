@@ -12,7 +12,7 @@ def connect_db():
     return mysql.connector.connect(
         host="localhost",
         user="root",
-        password="$root",  # Change this to your MySQL password
+        password="$Beanman069",  # Change this to your MySQL password
         database="projectdb"
     )
 
