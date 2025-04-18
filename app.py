@@ -12,7 +12,7 @@ def connect_db():
     return mysql.connector.connect(
         host="localhost",
         user="root",
-        password="PASSWORD",  # Change this to your MySQL password
+        password="$Beanman069",  # Change this to your MySQL password
         database="projectdb"
     )
 
@@ -142,8 +142,8 @@ def create_listing():
         price = request.form["price"]
 
         cursor.execute("""
-            INSERT INTO rental_unit (user_id, title, details, features, price, posted_at)
-            VALUES (%s, %s, %s, %s, %s, NOW())
+            INSERT INTO rental_unit (user_id, title, details, features, price)
+            VALUES (%s, %s, %s, %s, %s)
         """, (user_id, title, details, features, price))
         conn.commit()
         flash("Listing created successfully.")

@@ -10,7 +10,7 @@
 <body>
     <div class="wrapper">
         <h2>You have {{ listings_left }} listings left today</h2>
-        <form action="/submit_listing" method="POST">
+        <form action="/create_listing" method="POST">
             <div class="input-box"><input type="text" name="title" placeholder="Title" required></div>
             <div class="input-box"><textarea name="description" placeholder="Description" required></textarea></div>
             <div class="input-box"><input type="text" name="features" placeholder="Features (comma-separated)" required></div>
