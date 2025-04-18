@@ -100,45 +100,62 @@ def landing():
         flash("Please log in first.", "warning")
         return redirect(url_for("login"))
 
-# Route for creating a listing
-@app.route("/create_listing")
+# Route for create listing/submit listing
+@app.route("/create_listing", methods=["GET", "POST"])
 def create_listing():
     if "username" not in session:
-        flash("Please log in first.", "warning")
+        flash("Please log in first.")
         return redirect(url_for("login"))
-    listings_left = 2
-    return render_template("create_listing.html", listings_left=listings_left)
-
-# Route to handle listing submission
-@app.route("/submit_listing", methods=["POST"])
-def submit_listing():
-    if "username" not in session:
-        flash("Please log in first.", "warning")
-        return redirect(url_for("login"))
-    title = request.form["title"]
-    details = request.form.get("description")
-    features = request.form["features"]
-    price = request.form["price"]
+    
     username = session["username"]
 
     conn = connect_db()
     cursor = conn.cursor()
     cursor.execute("SELECT id FROM user WHERE username = %s", (username,))
     user = cursor.fetchone()
-    if user:
-        user_id = user[0]
-        cursor.execute(
-            """
-            INSERT INTO rental_unit (user_id, title, details, features, price)
-            VALUES (%s, %s, %s, %s, %s)
+
+    if not user:
+        flash("User not found.")
+        cursor.close()
+        conn.close()
+        return redirect(url_for("login"))
+
+    user_id = user[0]
+
+    cursor.execute("""
+        SELECT COUNT(*) FROM rental_unit
+        WHERE user_id = %s AND DATE(posted_at) = CURDATE()
+    """, (user_id,))
+    posted_today = cursor.fetchone()[0]
+    listings_left = max(0, 2 - posted_today)
+
+    if request.method == "POST":
+        if listings_left <= 0:
+            flash("You can only post 2 rental units per day.")
+            cursor.close()
+            conn.close()
+            return render_template("create_listing.html", listings_left=listings_left)
+
+        title = request.form["title"]
+        details = request.form.get("description")
+        features = request.form["features"]
+        price = request.form["price"]
+
+        cursor.execute("""
+            INSERT INTO rental_unit (user_id, title, details, features, price, posted_at)
+            VALUES (%s, %s, %s, %s, %s, NOW())
         """, (user_id, title, details, features, price))
         conn.commit()
-        flash("Listing created successfully!", "success")
-    else:
-        flash("User not found.", "danger")
+        flash("Listing created successfully.")
+
+        cursor.close()
+        conn.close()
+        return redirect(url_for("landing"))
+
     cursor.close()
     conn.close()
-    return redirect(url_for("landing"))
+    return render_template("create_listing.html", listings_left=listings_left)
+
 
 # Route for searching for listings
 @app.route("/search_listing")
