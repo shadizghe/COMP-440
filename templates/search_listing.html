@@ -15,6 +15,13 @@
 </head>
 <body>
     <div class="wrapper">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="flash-message {{ category }}">{{ message }}</div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
         <form action="/search_listing" method="GET">
             <div class="input-box">
                 <input type="text" name="feature" placeholder="Enter a feature to search" required>
@@ -30,9 +37,18 @@
                         <button onclick="toggleReviewForm({{ listing.id }})" class="btn small-btn">Leave a Review</button>
                         <form id="review-form-{{ listing.id }}" class="review-form" action="/submit_review" method="POST" style="display: none;">
                             <input type="hidden" name="listing_id" value="{{ listing.id }}">
+                        
+                            <label for="rating">Rating:</label>
+                            <select name="rating" required>
+                                <option value="">Select rating</option>
+                                <option value="excellent">Excellent</option>
+                                <option value="good">Good</option>
+                                <option value="fair">Fair</option>
+                                <option value="poor">Poor</option>
+                            </select>                        
                             <textarea name="review_text" placeholder="Write your review..." required></textarea>
                             <button type="submit" class="btn small-btn">Submit Review</button>
-                        </form>
+                        </form>                     
                     </li>
                 {% endfor %}
             </ul>
