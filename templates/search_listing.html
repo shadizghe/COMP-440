@@ -6,6 +6,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Search Listings</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='search_listing.css') }}">
+    <script>
+        function toggleReviewForm(listingId) {
+            const form = document.getElementById('review-form-' + listingId);
+            form.style.display = form.style.display === 'none' ? 'block' : 'none';
+        }
+    </script>
 </head>
 <body>
     <div class="wrapper">
@@ -18,7 +24,16 @@
         {% if listings %}
             <ul class="results">
                 {% for listing in listings %}
-                    <li><strong>{{ listing.title }}</strong> - {{ listing.description }} - ${{ listing.price }}</li>
+                    <li>
+                        <strong>{{ listing.title }}</strong> - {{ listing.description }} - ${{ listing.price }}
+                        <br>
+                        <button onclick="toggleReviewForm({{ listing.id }})" class="btn small-btn">Leave a Review</button>
+                        <form id="review-form-{{ listing.id }}" class="review-form" action="/submit_review" method="POST" style="display: none;">
+                            <input type="hidden" name="listing_id" value="{{ listing.id }}">
+                            <textarea name="review_text" placeholder="Write your review..." required></textarea>
+                            <button type="submit" class="btn small-btn">Submit Review</button>
+                        </form>
+                    </li>
                 {% endfor %}
             </ul>
         {% endif %}
