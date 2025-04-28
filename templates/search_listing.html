@@ -13,7 +13,7 @@
         }
     </script>
 </head>
-<body>
+<body>  
     <div class="wrapper">
         {% with messages = get_flashed_messages(with_categories=true) %}
           {% if messages %}
@@ -22,9 +22,14 @@
             {% endfor %}
           {% endif %}
         {% endwith %}
+        <p>
+            <a href="{{ url_for('landing') }}" style="text-decoration: none; color: #007BFF;">← Back to Home</a>
+        </p>       
         <form action="/search_listing" method="GET">
+            <p>Search for a feature or User</p>
             <div class="input-box">
-                <input type="text" name="feature" placeholder="Enter a feature to search" required>
+                <input type="text" name="feature" placeholder="Enter a feature to search">
+                <input type="text" name="username" placeholder="Enter a username to search">
             </div>
             <button type="submit" class="btn">Search</button>
         </form>

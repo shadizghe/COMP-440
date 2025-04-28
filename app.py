@@ -5,7 +5,7 @@ import base64
 from datetime import datetime, timedelta
 
 app = Flask(__name__)
-app.secret_key = "your_secret_key"  # Change this to a secure random key
+app.secret_key = "your_secret_key"
 
 # Function to connect to MySQL database
 def connect_db():
@@ -165,22 +165,47 @@ def search_listing():
         return redirect(url_for("login"))
 
     feature = request.args.get("feature")
+    username = request.args.get("username")
     listings = []
 
+    conn = connect_db()
+    cursor = conn.cursor(dictionary=True)
+
+    # Base query and parameters
+    query = """
+        SELECT rental_unit.id, rental_unit.title, rental_unit.details AS description,
+               rental_unit.features, rental_unit.price, rental_unit.posted_at
+        FROM rental_unit
+        LEFT JOIN review ON rental_unit.id = review.rental_unit_id
+        LEFT JOIN `user` ON rental_unit.user_id = `user`.id
+        WHERE 1=1
+    """
+    params = []
+
+    # If feature search is active
     if feature:
-        conn = connect_db()
-        cursor = conn.cursor(dictionary=True)
-        cursor.execute(
-            """
-            SELECT id, title, details AS description, features, price, posted_at
-            FROM rental_unit
-            WHERE features LIKE %s
-            """, (f"%{feature}%",))
+        query += " AND rental_unit.features LIKE %s"
+        params.append(f"%{feature}%")
+        query += " ORDER BY rental_unit.price DESC"
+        cursor.execute(query, params)
         listings = cursor.fetchall()
-        cursor.close()
-        conn.close()
+
+    # If username search is active
+    if username:
+        query += """
+            AND user.username = %s
+            AND (review.rating = 'good' OR review.rating = 'excellent')
+        """
+        params.append(username)
+        query += " ORDER BY rental_unit.price DESC"
+        cursor.execute(query, params)
+        listings = cursor.fetchall()
+
+    cursor.close()
+    conn.close()
 
     return render_template("search_listing.html", listings=listings)
+
 
 # Route for leaving a review
 @app.route("/submit_review", methods=["POST"])
