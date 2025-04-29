@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics Results</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='landing.css') }}">
+</head>
+<body>
+    <div class="wrapper">
+        <h1>{{ title }}</h1>
+        {% if results %}
+            <ul class="results">
+                {% for item in results %}
+                    <li>
+                        {% if 'username' in item %}
+                            {{ item.username }}
+                            {% if 'unit_count' in item %}
+                                ({{ item.unit_count }} listings)
+                            {% endif %}
+                        {% else %}
+                            {{ item }}
+                        {% endif %}
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No results found.</p>
+        {% endif %}
+        <a href="{{ url_for('landing') }}" class="btn">Back to Dashboard</a>
+    </div>
+</body>
+</html>
