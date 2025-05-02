@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -39,7 +38,8 @@
                     <li>
                         <strong>{{ listing.title }}</strong> - {{ listing.description }} - ${{ listing.price }}
                         <br>
-                        <button onclick="toggleReviewForm({{ listing.id }})" class="btn small-btn">Leave a Review</button>
+                        <!-- QUOTES ADDED HERE -->
+                        <button onclick="toggleReviewForm('{{ listing.id }}')" class="btn small-btn">Leave a Review</button>
                         <form id="review-form-{{ listing.id }}" class="review-form" action="/submit_review" method="POST" style="display: none;">
                             <input type="hidden" name="listing_id" value="{{ listing.id }}">
                         
