@@ -12,7 +12,7 @@ def connect_db():
     return mysql.connector.connect(
         host="localhost",
         user="root",
-        password="PASSWORD",  # Change this to your MySQL password
+        password="Enrique40$",  # Change this to your MySQL password
         database="projectdb"
     )
 
@@ -277,6 +277,34 @@ def logout():
     session.pop("username", None)
     flash("You have been logged out.", "info")
     return redirect(url_for("login"))
+
+@app.route("/search_features", methods=["GET"])
+def feature_search():
+    users = None
+    feature1 = request.args.get("feature1")
+    feature2 = request.args.get("feature2")
+
+    if feature1 and feature2:
+        conn = connect_db()
+        cursor = conn.cursor(dictionary=True)
+
+        query = """
+            SELECT DISTINCT u.id, u.username
+            FROM user u
+            JOIN rental_unit ru1 ON u.id = ru1.user_id
+            JOIN rental_unit ru2 ON u.id = ru2.user_id
+            WHERE ru1.id != ru2.id
+              AND DATE(ru1.posted_at) = DATE(ru2.posted_at)
+              AND ru1.features LIKE %s
+              AND ru2.features LIKE %s
+        """
+
+        cursor.execute(query, (f"%{feature1}%", f"%{feature2}%"))
+        users = cursor.fetchall()
+        cursor.close()
+        conn.close()
+
+    return render_template("search_features.html", users=users)
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)

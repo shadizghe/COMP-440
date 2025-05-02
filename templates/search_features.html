@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Feature Pair Search</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='search_features.css') }}">
+</head>
+<body>
+    <div class="wrapper">
+        <h1>Search by Features</h1>
+
+        <form action="{{ url_for('feature_search') }}" method="get">
+            <div class="input-box">
+                <input type="text" name="feature1" placeholder="Enter Feature X" required>
+            </div>
+            <div class="input-box">
+                <input type="text" name="feature2" placeholder="Enter Feature Y" required>
+            </div>
+            <div class="btn-container">
+                <p></p>
+                <button type="submit" class="btn">Search</button>
+            </div>
+        </form>
+
+        {% if users %}
+            <h2>Matching Users:</h2>
+            <ul>
+                {% for user in users %}
+                    <li>{{ user.username }}</li>
+                {% endfor %}
+            </ul>
+        {% elif users is not none %}
+            <p>No users found matching the criteria.</p>
+        {% endif %}
+    </div>
+
+    <!-- "Back to Home" Text Link at the Bottom -->
+    <div class="back-to-home">
+        <a href="{{ url_for('landing') }}">← Back to Home</a>
+    </div>
+</body>
+</html>
+
