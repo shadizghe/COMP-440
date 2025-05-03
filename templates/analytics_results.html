@@ -1,33 +1,65 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Analytics Results</title>
+    <title>{{ title }}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='landing.css') }}">
+    <style>
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+            margin: 2rem;
+        }
+        .column {
+            background: #f9f9f9;
+            padding: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+        .column h2 {
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+        .results li {
+            margin: 0.5rem 0;
+        }
+    </style>
 </head>
 <body>
     <div class="wrapper">
+        <p>
+            <a href="{{ url_for('landing') }}" style="text-decoration: none; color: #007BFF;">← Back to Home</a>
+        </p>  
         <h1>{{ title }}</h1>
-        {% if results %}
-            <ul class="results">
-                {% for item in results %}
-                    <li>
-                        {% if 'username' in item %}
-                            {{ item.username }}
-                            {% if 'unit_count' in item %}
-                                ({{ item.unit_count }} listings)
-                            {% endif %}
-                        {% else %}
-                            {{ item }}
-                        {% endif %}
-                    </li>
-                {% endfor %}
-            </ul>
+
+        {% if overview %}
+        <!-- 3-column analytics menu -->
+        <div class="grid-container">
+            <div class="column">
+                <h2>Column 1</h2>
+                <a href="{{ url_for('most_active_posters') }}">Most Active Posters</a>
+            </div>
+            <div class="column">
+                <h2>Column 2</h2>
+                <a href="{{ url_for('poor_reviewers') }}">Poor Reviewers Only</a>
+            </div>
+            <div class="column">
+                <h2>Column 3</h2>
+                <a href="{{ url_for('no_poor_reviews') }}">No Poor Review Listings</a>
+            </div>
+        </div>
         {% else %}
-            <p>No results found.</p>
+        <!-- Display analytics results -->
+        <ul class="results">
+            {% for row in data %}
+                <li>{{ row }}</li>
+            {% endfor %}
+        </ul>
         {% endif %}
-        <a href="{{ url_for('landing') }}" class="btn">Back to Dashboard</a>
+
+        <a href="{{ url_for('analytics_menu') }}" class="btn">Back to Analytics Overview</a>
     </div>
 </body>
 </html>

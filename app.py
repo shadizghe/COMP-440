@@ -11,7 +11,7 @@ def connect_db():
     return mysql.connector.connect(
         host="localhost",
         user="root",
-        password="PASSWORD",  # Change this to your MySQL password
+        password="password",  # Change this to your MySQL password
         database="projectdb"
     )
 
@@ -161,103 +161,82 @@ def search_listing():
 
     return render_template("search_listing.html", listings=listings)
 
-# Analytics Route 1: Most active posters on specific date
-@app.route("/analytics/most_active_posters")
+# Route for analytics page
+@app.route("/analytics_results")
+def analytics_menu():
+    if "username" not in session:
+        flash("Please log in first.", "warning")
+        return redirect(url_for("login"))
+
+    # No data; just show column headers and links
+    return render_template(
+        "analytics_results.html",
+        title="Analytics Overview",
+        overview=True  # flag to show menu
+    )
+
+# Route for most active posters
+@app.route("/analytics_results/most_active_posters")
 def most_active_posters():
     if "username" not in session:
         flash("Please log in first.", "warning")
         return redirect(url_for("login"))
-    
-    target_date = "2025-04-15"  # This could be made parameterizable
-    conn = connect_db()
-    cursor = conn.cursor(dictionary=True)
-    
-    query = """
-        SELECT u.username, COUNT(ru.id) as unit_count
-        FROM user u
-        JOIN rental_unit ru ON u.id = ru.user_id
-        WHERE DATE(ru.posted_at) = %s
-        GROUP BY u.id, u.username
-        HAVING COUNT(ru.id) = (
-            SELECT COUNT(ru2.id) as max_count
-            FROM rental_unit ru2
-            WHERE DATE(ru2.posted_at) = %s
-            GROUP BY ru2.user_id
-            ORDER BY max_count DESC
-            LIMIT 1
-        )
-    """
-    cursor.execute(query, (target_date, target_date))
-    results = cursor.fetchall()
-    cursor.close()
-    conn.close()
-    
-    return render_template("analytics_results.html", 
-                         title="Most Active Posters on 4/15/2025",
-                         results=results)
 
-# Analytics Route 2: Users who only gave poor reviews
+    conn = connect_db()
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT user.username, COUNT(rental_unit.id) AS post_count
+        FROM rental_unit
+        JOIN user ON rental_unit.user_id = user.id
+        WHERE DATE(rental_unit.posted_at) = '2025-04-28'
+        GROUP BY user.username
+        ORDER BY post_count DESC
+        LIMIT 3
+    """)
+    rows = cursor.fetchall()
+    results = [f"{row[0]} - {row[1]} posts" for row in rows]
+
+    return render_template(
+        "analytics_results.html",
+        title=f"Most Active Posters on {target_date}",
+        data=results
+    )
+
 @app.route("/analytics/poor_reviewers")
 def poor_reviewers():
     if "username" not in session:
         flash("Please log in first.", "warning")
         return redirect(url_for("login"))
-    
-    conn = connect_db()
-    cursor = conn.cursor(dictionary=True)
-    
-    query = """
-        SELECT DISTINCT u.username
-        FROM user u
-        JOIN review r ON u.id = r.reviewer_id
-        WHERE u.id NOT IN (
-            SELECT DISTINCT reviewer_id 
-            FROM review 
-            WHERE rating != 'poor'
-        )
-    """
-    cursor.execute(query)
-    results = cursor.fetchall()
-    cursor.close()
-    conn.close()
-    
-    return render_template("analytics_results.html",
-                         title="Users Who Only Gave Poor Reviews",
-                         results=results)
 
-# Analytics Route 3: Users whose listings never got poor reviews
+    conn = connect_db()
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT user.username
+        FROM user
+        WHERE NOT EXISTS (
+            SELECT 1
+            FROM rental_unit
+            JOIN review ON rental_unit.id = review.rental_unit_id
+            WHERE rental_unit.user_id = user.id
+              AND review.rating != 'poor'
+        )
+    """)
+
+    rows = cursor.fetchall()
+    results = [f"{row[0]} - {row[1]} posts" for row in rows]
+
+    return render_template("analytics_results.html", title="Poor Reviewers Only", data=results)
+
+
 @app.route("/analytics/no_poor_reviews")
 def no_poor_reviews():
     if "username" not in session:
         flash("Please log in first.", "warning")
         return redirect(url_for("login"))
-    
-    conn = connect_db()
-    cursor = conn.cursor(dictionary=True)
-    
-    query = """
-        SELECT DISTINCT u.username
-        FROM user u
-        JOIN rental_unit ru ON u.id = ru.user_id
-        WHERE NOT EXISTS (
-            SELECT 1 
-            FROM review r 
-            WHERE r.rental_unit_id = ru.id 
-            AND r.rating = 'poor'
-        )
-        AND u.id IN (
-            SELECT DISTINCT user_id 
-            FROM rental_unit
-        )
-    """
-    cursor.execute(query)
-    results = cursor.fetchall()
-    cursor.close()
-    conn.close()
-    
-    return render_template("analytics_results.html",
-                         title="Users Whose Listings Never Got Poor Reviews",
-                         results=results)
+
+    results = ["Listing 123", "Listing 456"]
+    return render_template("analytics_results.html", title="No Poor Review Listings", data=results)
+
 
 # Route to handle user logout
 @app.route("/logout")
