@@ -11,7 +11,7 @@ def connect_db():
     return mysql.connector.connect(
         host="localhost",
         user="root",
-        password="password",  # Change this to your MySQL password
+        password="PASSWORD",  # Change this to your MySQL password
         database="projectdb"
     )
 
@@ -182,17 +182,19 @@ def most_active_posters():
         flash("Please log in first.", "warning")
         return redirect(url_for("login"))
 
+    target_date = '2025-04-28'
+
     conn = connect_db()
     cursor = conn.cursor()
     cursor.execute("""
         SELECT user.username, COUNT(rental_unit.id) AS post_count
         FROM rental_unit
         JOIN user ON rental_unit.user_id = user.id
-        WHERE DATE(rental_unit.posted_at) = '2025-04-28'
+        WHERE DATE(rental_unit.posted_at) = %s
         GROUP BY user.username
         ORDER BY post_count DESC
         LIMIT 3
-    """)
+    """, (target_date,))
     rows = cursor.fetchall()
     results = [f"{row[0]} - {row[1]} posts" for row in rows]
 
@@ -221,9 +223,8 @@ def poor_reviewers():
               AND review.rating != 'poor'
         )
     """)
-
     rows = cursor.fetchall()
-    results = [f"{row[0]} - {row[1]} posts" for row in rows]
+    results = [f"{row[0]}" for row in rows]
 
     return render_template("analytics_results.html", title="Poor Reviewers Only", data=results)
 
@@ -234,7 +235,20 @@ def no_poor_reviews():
         flash("Please log in first.", "warning")
         return redirect(url_for("login"))
 
-    results = ["Listing 123", "Listing 456"]
+    conn = connect_db()
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT u.username
+        FROM user u
+        WHERE u.id NOT IN (
+            SELECT ru.user_id
+            FROM rental_unit ru
+            JOIN review r ON r.rental_unit_id = ru.id
+            WHERE r.rating = 'poor'
+        )
+    """)
+    rows = cursor.fetchall()
+    results = [f"{row[0]}" for row in rows]
     return render_template("analytics_results.html", title="No Poor Review Listings", data=results)
 
 
