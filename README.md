@@ -1,7 +1,7 @@
 ### COMP 440
 
-# Phase 2 Demo Video
-1. https://youtu.be/MUCW4k4RO80
+# Phase 3 Demo Video
+1. https://youtu.be/PQtXSUTozgY
 
 # How to run?
 1. create virtual environment
@@ -16,9 +16,9 @@
     python app.py
 
 # Group Contributions
-1. Shadi
-    - Search for listings function
+1. Ethan
+    - Functionality #2
 2. Spencer
-    - Leave a review function and html/css files for phase 2 pages
-3. Ethan
-    - Create listing function
+    - Functionality #1 and #3
+3. Shadi
+    - Functionality #4, #5, and #6
