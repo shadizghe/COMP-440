@@ -11,7 +11,7 @@ def connect_db():
     return mysql.connector.connect(
         host="localhost",
         user="root",
-        password="PASSWORD",  # Change this to your MySQL password
+        password="$Beanman069",  # Change this to your MySQL password
         database="projectdb"
     )
 
@@ -96,6 +96,16 @@ def landing():
         flash("Please log in first.", "warning")
         return redirect(url_for("login"))
 
+@app.route("/submit_review", methods=["GET", "POST"])
+def submit_review():
+    if request.method == "POST":
+        # handle form submission
+        pass
+    else:
+        # optionally show a form
+        return render_template("submit_review.html")
+
+
 # Route for creating a listing
 @app.route("/create_listing")
 def create_listing():
@@ -154,7 +164,32 @@ def search_listing():
             SELECT id, title, details AS description, features, price, posted_at
             FROM rental_unit
             WHERE features LIKE %s
+            ORDER BY price DESC
             """, (f"%{feature}%",))
+        listings = cursor.fetchall()
+        cursor.close()
+        conn.close()
+
+    username = request.args.get("username")
+
+    if username:
+        conn = connect_db()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("""
+            SELECT ru.id, ru.title, ru.details, ru.features, ru.price, ru.posted_at
+            FROM rental_unit ru
+            JOIN user u ON ru.user_id = u.id
+            WHERE u.username = %s
+              AND ru.id IN (
+                SELECT r.rental_unit_id
+                FROM review r
+                GROUP BY r.rental_unit_id
+                HAVING SUM(r.rating IN ('poor', 'fair')) = 0
+                   AND SUM(r.rating IN ('good', 'excellent')) > 0
+            )
+            ORDER BY ru.price DESC
+        """, (username,))
+
         listings = cursor.fetchall()
         cursor.close()
         conn.close()
