@@ -96,14 +96,68 @@ def landing():
         flash("Please log in first.", "warning")
         return redirect(url_for("login"))
 
-@app.route("/submit_review", methods=["GET", "POST"])
+# Route for leaving a review
+@app.route("/submit_review", methods=["POST"])
 def submit_review():
-    if request.method == "POST":
-        # handle form submission
-        pass
+    if "username" not in session:
+        flash("You must be logged in to leave a review.", "warning")
+        return redirect(url_for("login"))
+
+    rental_unit_id = request.form.get("listing_id")
+    review_text = request.form.get("review_text")
+    rating = request.form.get("rating")
+
+    conn = connect_db()
+    cursor = conn.cursor()
+
+    # Get the current user ID
+    cursor.execute("SELECT id FROM user WHERE username = %s", (session["username"],))
+    user = cursor.fetchone()
+    if not user:
+        flash("Error: User not found.", "danger")
+        cursor.close()
+        conn.close()
+        return redirect(url_for("search_listing"))
+
+    user_id = user[0]
+
+    # Check if the listing belongs to this user
+    cursor.execute("SELECT user_id FROM rental_unit WHERE id = %s", (rental_unit_id,))
+    listing = cursor.fetchone()
+    if not listing:
+        flash("Error: Listing not found.", "danger")
+    elif listing[0] == user_id:
+        flash("Review denied: You cannot review your own listing.", "warning")
     else:
-        # optionally show a form
-        return render_template("submit_review.html")
+        # Checksif user already reviewed this listing
+        cursor.execute("""
+            SELECT COUNT(*) FROM review
+            WHERE user_id = %s AND rental_unit_id = %s
+        """, (user_id, rental_unit_id))
+        if cursor.fetchone()[0] > 0:
+            flash("You have already reviewed this listing.", "warning")
+        else:
+            # Checks if user has left 3 reviews today
+            cursor.execute("""
+                SELECT COUNT(*) FROM review
+                WHERE user_id = %s AND DATE(posted_at) = CURDATE()
+            """, (user_id,))
+            reviews_today = cursor.fetchone()[0]
+
+            if reviews_today >= 3:
+                flash("You can only leave 3 reviews per day.", "warning")
+            else:
+                # Inserts the review
+                cursor.execute("""
+                    INSERT INTO review (rental_unit_id, user_id, rating, review_text)
+                    VALUES (%s, %s, %s, %s)
+                """, (rental_unit_id, user_id, rating, review_text))
+                conn.commit()
+                flash("Review submitted successfully!", "success")
+
+    cursor.close()
+    conn.close()
+    return redirect(url_for("search_listing"))
 
 
 # Route for creating a listing
