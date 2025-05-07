@@ -5,29 +5,25 @@ import base64
 from datetime import datetime, timedelta
 
 app = Flask(__name__)
-app.secret_key = "your_secret_key"
+app.secret_key = "your_secret_key"  
 
-# Function to connect to MySQL database
 def connect_db():
     return mysql.connector.connect(
         host="localhost",
         user="root",
-        password="Enrique40$",  # Change this to your MySQL password
+        password="PASSWORD",  # Change this to your MySQL password
         database="projectdb"
     )
 
-# Function to hash passwords using SHA-256
 def hash_password(password):
     hashed = hashlib.sha256(password.encode()).digest()
     return base64.b64encode(hashed).decode()
 
-# Route to display the signup page
 @app.route("/")
 @app.route("/signup")
 def signup():
     return render_template("signup.html")
 
-# Route to handle user registration
 @app.route("/register", methods=["POST"])
 def register():
     username = request.form["username"]
@@ -100,113 +96,6 @@ def landing():
         flash("Please log in first.", "warning")
         return redirect(url_for("login"))
 
-# Route for create listing/submit listing
-@app.route("/create_listing", methods=["GET", "POST"])
-def create_listing():
-    if "username" not in session:
-        flash("Please log in first.")
-        return redirect(url_for("login"))
-    
-    username = session["username"]
-
-    conn = connect_db()
-    cursor = conn.cursor()
-    cursor.execute("SELECT id FROM user WHERE username = %s", (username,))
-    user = cursor.fetchone()
-
-    if not user:
-        flash("User not found.")
-        cursor.close()
-        conn.close()
-        return redirect(url_for("login"))
-
-    user_id = user[0]
-
-    cursor.execute("""
-        SELECT COUNT(*) FROM rental_unit
-        WHERE user_id = %s AND DATE(posted_at) = CURDATE()
-    """, (user_id,))
-    posted_today = cursor.fetchone()[0]
-    listings_left = max(0, 2 - posted_today)
-
-    if request.method == "POST":
-        if listings_left <= 0:
-            flash("You can only post 2 rental units per day.")
-            cursor.close()
-            conn.close()
-            return render_template("create_listing.html", listings_left=listings_left)
-
-        title = request.form["title"]
-        details = request.form.get("description")
-        features = request.form["features"]
-        price = request.form["price"]
-
-        cursor.execute("""
-            INSERT INTO rental_unit (user_id, title, details, features, price)
-            VALUES (%s, %s, %s, %s, %s)
-        """, (user_id, title, details, features, price))
-        conn.commit()
-        flash("Listing created successfully.")
-
-        cursor.close()
-        conn.close()
-        return redirect(url_for("landing"))
-
-    cursor.close()
-    conn.close()
-    return render_template("create_listing.html", listings_left=listings_left)
-
-
-# Route for searching for listings
-@app.route("/search_listing")
-def search_listing():
-    if "username" not in session:
-        flash("Please log in first.", "warning")
-        return redirect(url_for("login"))
-
-    feature = request.args.get("feature")
-    username = request.args.get("username")
-    listings = []
-
-    conn = connect_db()
-    cursor = conn.cursor(dictionary=True)
-
-    # Base query and parameters
-    query = """
-        SELECT rental_unit.id, rental_unit.title, rental_unit.details AS description,
-               rental_unit.features, rental_unit.price, rental_unit.posted_at
-        FROM rental_unit
-        LEFT JOIN review ON rental_unit.id = review.rental_unit_id
-        LEFT JOIN `user` ON rental_unit.user_id = `user`.id
-        WHERE 1=1
-    """
-    params = []
-
-    # If feature search is active
-    if feature:
-        query += " AND rental_unit.features LIKE %s"
-        params.append(f"%{feature}%")
-        query += " ORDER BY rental_unit.price DESC"
-        cursor.execute(query, params)
-        listings = cursor.fetchall()
-
-    # If username search is active
-    if username:
-        query += """
-            AND user.username = %s
-            AND (review.rating = 'good' OR review.rating = 'excellent')
-        """
-        params.append(username)
-        query += " ORDER BY rental_unit.price DESC"
-        cursor.execute(query, params)
-        listings = cursor.fetchall()
-
-    cursor.close()
-    conn.close()
-
-    return render_template("search_listing.html", listings=listings)
-
-
 # Route for leaving a review
 @app.route("/submit_review", methods=["POST"])
 def submit_review():
@@ -269,6 +158,187 @@ def submit_review():
     cursor.close()
     conn.close()
     return redirect(url_for("search_listing"))
+
+
+# Route for creating a listing
+@app.route("/create_listing")
+def create_listing():
+    if "username" not in session:
+        flash("Please log in first.", "warning")
+        return redirect(url_for("login"))
+    listings_left = 2
+    return render_template("create_listing.html", listings_left=listings_left)
+
+# Route to handle listing submission
+@app.route("/submit_listing", methods=["POST"])
+def submit_listing():
+    if "username" not in session:
+        flash("Please log in first.", "warning")
+        return redirect(url_for("login"))
+    title = request.form["title"]
+    details = request.form.get("description")
+    features = request.form["features"]
+    price = request.form["price"]
+    username = session["username"]
+
+    conn = connect_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT id FROM user WHERE username = %s", (username,))
+    user = cursor.fetchone()
+    if user:
+        user_id = user[0]
+        cursor.execute(
+            """
+            INSERT INTO rental_unit (user_id, title, details, features, price)
+            VALUES (%s, %s, %s, %s, %s)
+        """, (user_id, title, details, features, price))
+        conn.commit()
+        flash("Listing created successfully!", "success")
+    else:
+        flash("User not found.", "danger")
+    cursor.close()
+    conn.close()
+    return redirect(url_for("landing"))
+
+# Route for searching for listings
+@app.route("/search_listing")
+def search_listing():
+    if "username" not in session:
+        flash("Please log in first.", "warning")
+        return redirect(url_for("login"))
+
+    feature = request.args.get("feature")
+    listings = []
+
+    if feature:
+        conn = connect_db()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute(
+            """
+            SELECT id, title, details AS description, features, price, posted_at
+            FROM rental_unit
+            WHERE features LIKE %s
+            ORDER BY price DESC
+            """, (f"%{feature}%",))
+        listings = cursor.fetchall()
+        cursor.close()
+        conn.close()
+
+    username = request.args.get("username")
+
+    if username:
+        conn = connect_db()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("""
+            SELECT ru.id, ru.title, ru.details, ru.features, ru.price, ru.posted_at
+            FROM rental_unit ru
+            JOIN user u ON ru.user_id = u.id
+            WHERE u.username = %s
+              AND ru.id IN (
+                SELECT r.rental_unit_id
+                FROM review r
+                GROUP BY r.rental_unit_id
+                HAVING SUM(r.rating IN ('poor', 'fair')) = 0
+                   AND SUM(r.rating IN ('good', 'excellent')) > 0
+            )
+            ORDER BY ru.price DESC
+        """, (username,))
+
+        listings = cursor.fetchall()
+        cursor.close()
+        conn.close()
+
+    return render_template("search_listing.html", listings=listings)
+
+# Route for analytics page
+@app.route("/analytics_results")
+def analytics_menu():
+    if "username" not in session:
+        flash("Please log in first.", "warning")
+        return redirect(url_for("login"))
+
+    # No data; just show column headers and links
+    return render_template(
+        "analytics_results.html",
+        title="Analytics Overview",
+        overview=True  # flag to show menu
+    )
+
+# Route for most active posters
+@app.route("/analytics_results/most_active_posters")
+def most_active_posters():
+    if "username" not in session:
+        flash("Please log in first.", "warning")
+        return redirect(url_for("login"))
+
+    target_date = '2025-04-28'
+
+    conn = connect_db()
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT user.username, COUNT(rental_unit.id) AS post_count
+        FROM rental_unit
+        JOIN user ON rental_unit.user_id = user.id
+        WHERE DATE(rental_unit.posted_at) = %s
+        GROUP BY user.username
+        ORDER BY post_count DESC
+        LIMIT 3
+    """, (target_date,))
+    rows = cursor.fetchall()
+    results = [f"{row[0]} - {row[1]} posts" for row in rows]
+
+    return render_template(
+        "analytics_results.html",
+        title=f"Most Active Posters on {target_date}",
+        data=results
+    )
+
+@app.route("/analytics/poor_reviewers")
+def poor_reviewers():
+    if "username" not in session:
+        flash("Please log in first.", "warning")
+        return redirect(url_for("login"))
+
+    conn = connect_db()
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT user.username
+        FROM user
+        WHERE NOT EXISTS (
+            SELECT 1
+            FROM rental_unit
+            JOIN review ON rental_unit.id = review.rental_unit_id
+            WHERE rental_unit.user_id = user.id
+              AND review.rating != 'poor'
+        )
+    """)
+    rows = cursor.fetchall()
+    results = [f"{row[0]}" for row in rows]
+
+    return render_template("analytics_results.html", title="Poor Reviewers Only", data=results)
+
+
+@app.route("/analytics/no_poor_reviews")
+def no_poor_reviews():
+    if "username" not in session:
+        flash("Please log in first.", "warning")
+        return redirect(url_for("login"))
+
+    conn = connect_db()
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT u.username
+        FROM user u
+        WHERE u.id NOT IN (
+            SELECT ru.user_id
+            FROM rental_unit ru
+            JOIN review r ON r.rental_unit_id = ru.id
+            WHERE r.rating = 'poor'
+        )
+    """)
+    rows = cursor.fetchall()
+    results = [f"{row[0]}" for row in rows]
+    return render_template("analytics_results.html", title="No Poor Review Listings", data=results)
 
 
 # Route to handle user logout

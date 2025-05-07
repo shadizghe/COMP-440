@@ -5,5 +5,5 @@ CREATE TABLE rental_unit (
     price DECIMAL(10, 2),
     posted_at DATETIME,
     user_id INT,
-    FOREIGN KEY (user_id) REFERENCES users(id)
+    FOREIGN KEY (user_id) REFERENCES user(id)
 );
