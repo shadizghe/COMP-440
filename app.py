@@ -175,6 +175,7 @@ def submit_listing():
     if "username" not in session:
         flash("Please log in first.", "warning")
         return redirect(url_for("login"))
+
     title = request.form["title"]
     details = request.form.get("description")
     features = request.form["features"]
@@ -183,19 +184,36 @@ def submit_listing():
 
     conn = connect_db()
     cursor = conn.cursor()
+
+    # Get the user ID
     cursor.execute("SELECT id FROM user WHERE username = %s", (username,))
     user = cursor.fetchone()
-    if user:
-        user_id = user[0]
-        cursor.execute(
-            """
-            INSERT INTO rental_unit (user_id, title, details, features, price)
-            VALUES (%s, %s, %s, %s, %s)
+    if not user:
+        flash("User not found.", "danger")
+        cursor.close()
+        conn.close()
+        return redirect(url_for("landing"))
+
+    user_id = user[0]
+
+    # Check how many listings the user has posted today
+    cursor.execute("""
+        SELECT COUNT(*) FROM rental_unit
+        WHERE user_id = %s AND DATE(posted_at) = CURDATE()
+    """, (user_id,))
+    listings_today = cursor.fetchone()[0]
+
+    if listings_today >= 2:
+        flash("You can only post 2 listings per day.", "warning")
+    else:
+        # Insert new listing with current timestamp
+        cursor.execute("""
+            INSERT INTO rental_unit (user_id, title, details, features, price, posted_at)
+            VALUES (%s, %s, %s, %s, %s, NOW())
         """, (user_id, title, details, features, price))
         conn.commit()
         flash("Listing created successfully!", "success")
-    else:
-        flash("User not found.", "danger")
+
     cursor.close()
     conn.close()
     return redirect(url_for("landing"))
