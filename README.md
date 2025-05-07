@@ -19,6 +19,6 @@
 1. Ethan
     - Functionality #2
 2. Spencer
-    - Leave a review function and html/css files for phase 2 pages
-3. Ethan
-    - Create listing function and html/css files for login/signup page
+    - Functionality #1 and #3
+3. Shadi
+    - Functionality #4, #5, and #6
