@@ -21,4 +21,4 @@
 2. Spencer
     - Leave a review function and html/css files for phase 2 pages
 3. Ethan
-    - Create listing function
+    - Create listing function and html/css files for login/signup page
