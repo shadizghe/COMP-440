@@ -396,7 +396,7 @@ def logout():
 @app.route("/search_features", methods=["GET"])
 def feature_search():
     users = None
-    expensive_listing = None
+    expensive_listings = []
     expensive_checked = False
 
     feature1 = request.args.get("feature1")
@@ -427,14 +427,21 @@ def feature_search():
         cursor.execute("""
             SELECT * FROM rental_unit
             WHERE features LIKE %s
-            ORDER BY price DESC
-            LIMIT 1
-        """, (f"%{expensive_feature}%",))
-        expensive_listing = cursor.fetchone()
+              AND price = (
+                  SELECT MAX(price) FROM rental_unit
+                  WHERE features LIKE %s
+              )
+        """, (f"%{expensive_feature}%", f"%{expensive_feature}%"))
+        expensive_listings = cursor.fetchall()
         cursor.close()
         conn.close()
 
-    return render_template("search_features.html", users=users, expensive_listing=expensive_listing, expensive_checked=expensive_checked)
+    return render_template(
+        "search_features.html",
+        users=users,
+        expensive_listings=expensive_listings,
+        expensive_checked=expensive_checked
+    )
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)

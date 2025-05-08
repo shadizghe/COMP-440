@@ -44,16 +44,20 @@
             <p>No users found matching both features on same day.</p>
         {% endif %}
 
-        {% if expensive_listing %}
-            <h2>Most Expensive Listing:</h2>
-            <div class="listing-card">
-                <h3>{{ expensive_listing.title }}</h3>
-                <p><strong>Price:</strong> ${{ expensive_listing.price }}</p>
-                <p><strong>Features:</strong> {{ expensive_listing.features }}</p>
-                <p><strong>Description:</strong> {{ expensive_listing.details }}</p>
-            </div>
-        {% elif expensive_listing is not none %}
-            <p>No listings found with that feature.</p>
+        {% if expensive_checked %}
+            {% if expensive_listings %}
+                <h2>Most Expensive Listings with Feature:</h2>
+                {% for listing in expensive_listings %}
+                    <div class="listing-card">
+                        <h3>{{ listing.title }}</h3>
+                        <p><strong>Price:</strong> ${{ listing.price }}</p>
+                        <p><strong>Features:</strong> {{ listing.features }}</p>
+                        <p><strong>Description:</strong> {{ listing.details }}</p>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p>No listings found with that feature.</p>
+            {% endif %}
         {% endif %}
     </div>
 
@@ -63,4 +67,5 @@
     </div>
 </body>
 </html>
+
 
