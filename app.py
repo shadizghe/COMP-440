@@ -299,9 +299,18 @@ def most_active_posters():
         JOIN user ON rental_unit.user_id = user.id
         WHERE DATE(rental_unit.posted_at) = %s
         GROUP BY user.username
-        ORDER BY post_count DESC
-        LIMIT 3
-    """, (target_date,))
+        HAVING post_count = (
+            SELECT MAX(post_count) 
+            FROM (
+                SELECT COUNT(rental_unit.id) AS post_count
+                FROM rental_unit
+                JOIN user ON rental_unit.user_id = user.id
+                WHERE DATE(rental_unit.posted_at) = %s
+                GROUP BY user.username
+            ) AS counts
+        )
+    """, (target_date, target_date))
+
     rows = cursor.fetchall()
     results = [f"{row[0]} - {row[1]} posts" for row in rows]
 
@@ -322,11 +331,15 @@ def poor_reviewers():
     cursor.execute("""
         SELECT user.username
         FROM user
-        WHERE NOT EXISTS (
+        WHERE EXISTS (
             SELECT 1
-            FROM rental_unit
-            JOIN review ON rental_unit.id = review.rental_unit_id
-            WHERE rental_unit.user_id = user.id
+            FROM review
+            WHERE review.user_id = user.id
+        )
+        AND NOT EXISTS (
+            SELECT 1
+            FROM review
+            WHERE review.user_id = user.id
               AND review.rating != 'poor'
         )
     """)
