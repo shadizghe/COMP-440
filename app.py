@@ -11,7 +11,7 @@ def connect_db():
     return mysql.connector.connect(
         host="localhost",
         user="root",
-        password="PASSWORD",  # Change this to your MySQL password
+        password="Enrique40$",  # Change this to your MySQL password
         database="projectdb"
     )
 
@@ -166,8 +166,35 @@ def create_listing():
     if "username" not in session:
         flash("Please log in first.", "warning")
         return redirect(url_for("login"))
-    listings_left = 2
+
+    username = session["username"]
+    conn = connect_db()
+    cursor = conn.cursor()
+
+    # Get the user ID
+    cursor.execute("SELECT id FROM user WHERE username = %s", (username,))
+    user = cursor.fetchone()
+    if not user:
+        flash("User not found.", "danger")
+        cursor.close()
+        conn.close()
+        return redirect(url_for("landing"))
+
+    user_id = user[0]
+
+    # Count today's listings
+    cursor.execute("""
+        SELECT COUNT(*) FROM rental_unit
+        WHERE user_id = %s AND DATE(posted_at) = CURDATE()
+    """, (user_id,))
+    listings_today = cursor.fetchone()[0]
+    listings_left = max(0, 2 - listings_today)
+
+    cursor.close()
+    conn.close()
+
     return render_template("create_listing.html", listings_left=listings_left)
+
 
 # Route to handle listing submission
 @app.route("/submit_listing", methods=["POST"])
@@ -382,14 +409,17 @@ def logout():
 @app.route("/search_features", methods=["GET"])
 def feature_search():
     users = None
+    expensive_listings = []
+    expensive_checked = False
+
     feature1 = request.args.get("feature1")
     feature2 = request.args.get("feature2")
+    expensive_feature = request.args.get("expensive_feature")
 
     if feature1 and feature2:
         conn = connect_db()
         cursor = conn.cursor(dictionary=True)
-
-        query = """
+        cursor.execute("""
             SELECT DISTINCT u.id, u.username
             FROM user u
             JOIN rental_unit ru1 ON u.id = ru1.user_id
@@ -398,14 +428,33 @@ def feature_search():
               AND DATE(ru1.posted_at) = DATE(ru2.posted_at)
               AND ru1.features LIKE %s
               AND ru2.features LIKE %s
-        """
-
-        cursor.execute(query, (f"%{feature1}%", f"%{feature2}%"))
+        """, (f"%{feature1}%", f"%{feature2}%"))
         users = cursor.fetchall()
         cursor.close()
         conn.close()
 
-    return render_template("search_features.html", users=users)
+    if expensive_feature:
+        expensive_checked = True
+        conn = connect_db()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("""
+            SELECT * FROM rental_unit
+            WHERE features LIKE %s
+              AND price = (
+                  SELECT MAX(price) FROM rental_unit
+                  WHERE features LIKE %s
+              )
+        """, (f"%{expensive_feature}%", f"%{expensive_feature}%"))
+        expensive_listings = cursor.fetchall()
+        cursor.close()
+        conn.close()
+
+    return render_template(
+        "search_features.html",
+        users=users,
+        expensive_listings=expensive_listings,
+        expensive_checked=expensive_checked
+    )
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)

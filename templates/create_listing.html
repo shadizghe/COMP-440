@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -16,17 +15,32 @@
             {% endfor %}
           {% endif %}
         {% endwith %}
+
         <p>
             <a href="{{ url_for('landing') }}" style="text-decoration: none; color: #007BFF;">← Back to Home</a>
         </p>        
-        <h2>You have {{ listings_left }} listings left today</h2>
+
+        <h2>You have {{ listings_left }} listing{{ 's' if listings_left != 1 else '' }} left today</h2>
+
+        {% if listings_left > 0 %}
         <form action="/submit_listing" method="POST">
-            <div class="input-box"><input type="text" name="title" placeholder="Title" required></div>
-            <div class="input-box"><textarea name="description" placeholder="Description" required></textarea></div>
-            <div class="input-box"><input type="text" name="features" placeholder="Features (comma-separated)" required></div>
-            <div class="input-box"><input type="number" name="price" placeholder="Price ($)" required></div>
+            <div class="input-box">
+                <input type="text" name="title" placeholder="Title" required>
+            </div>
+            <div class="input-box">
+                <textarea name="description" placeholder="Description" required></textarea>
+            </div>
+            <div class="input-box">
+                <input type="text" name="features" placeholder="Features (comma-separated)" required>
+            </div>
+            <div class="input-box">
+                <input type="number" name="price" placeholder="Price ($)" required>
+            </div>
             <button type="submit" class="btn">Submit Listing</button>
         </form>
+        {% else %}
+        <p style="color: red; margin-top: 20px;">You have reached your daily limit of 2 listings.</p>
+        {% endif %}
     </div>
 </body>
 </html>
