@@ -2,13 +2,14 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Feature Pair Search</title>
+    <title>Feature Search</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='search_features.css') }}">
 </head>
 <body>
     <div class="wrapper">
         <h1>Search by Features</h1>
 
+        <!-- Feature X and Y form -->
         <form action="{{ url_for('feature_search') }}" method="get">
             <div class="input-box">
                 <input type="text" name="feature1" placeholder="Enter Feature X" required>
@@ -17,8 +18,18 @@
                 <input type="text" name="feature2" placeholder="Enter Feature Y" required>
             </div>
             <div class="btn-container">
-                <p></p>
-                <button type="submit" class="btn">Search</button>
+                <button type="submit" class="btn">Search Matching Users</button>
+            </div>
+        </form>
+
+        <!-- Most Expensive Listing form -->
+        <h2>Search Most Expensive Listing by Feature</h2>
+        <form action="{{ url_for('feature_search') }}" method="get">
+            <div class="input-box">
+                <input type="text" name="expensive_feature" placeholder="Enter Feature (e.g. Beach)" required>
+            </div>
+            <div class="btn-container">
+                <button type="submit" class="btn">Find Most Expensive Listing</button>
             </div>
         </form>
 
@@ -30,11 +41,23 @@
                 {% endfor %}
             </ul>
         {% elif users is not none %}
-            <p>No users found matching the criteria.</p>
+            <p>No users found matching both features on same day.</p>
+        {% endif %}
+
+        {% if expensive_listing %}
+            <h2>Most Expensive Listing:</h2>
+            <div class="listing-card">
+                <h3>{{ expensive_listing.title }}</h3>
+                <p><strong>Price:</strong> ${{ expensive_listing.price }}</p>
+                <p><strong>Features:</strong> {{ expensive_listing.features }}</p>
+                <p><strong>Description:</strong> {{ expensive_listing.details }}</p>
+            </div>
+        {% elif expensive_listing is not none %}
+            <p>No listings found with that feature.</p>
         {% endif %}
     </div>
 
-    <!-- "Back to Home" Text Link at the Bottom -->
+    <!-- Back to Home -->
     <div class="back-to-home">
         <a href="{{ url_for('landing') }}">← Back to Home</a>
     </div>
